@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BacaJam — Kuis Membaca Waktu</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky:#fdf6e3; --ink:#2d2a32; --muted:#7c7488;
+  --card:#ffffff; --border:#e8e0f0;
+  --sun:#f5a623; --moon:#4a6fa5; --dawn:#e8855a; --dusk:#7b5ea7;
+  --green:#3dba7e; --red:#e05a5a;
+  --shadow:0 4px 24px rgba(45,42,50,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--sky);color:var(--ink);font-family:'Baloo 2',cursive;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(124,84,168,.08) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0;}
+.wrap{max-width:680px;margin:0 auto;padding:28px 16px;position:relative;z-index:1;}
+
+header{text-align:center;margin-bottom:28px;}
+header .logo{font-size:2.2rem;font-weight:800;color:var(--ink);letter-spacing:-1px;}
+header .logo span{color:var(--sun);}
+header p{color:var(--muted);font-size:.95rem;margin-top:2px;}
+
+.tabs{display:flex;gap:8px;justify-content:center;margin-bottom:24px;flex-wrap:wrap;}
+.tab{padding:9px 20px;border-radius:40px;border:2px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-family:'Baloo 2',cursive;font-size:.88rem;font-weight:700;transition:all .18s;}
+.tab:hover{border-color:var(--sun);color:var(--sun);}
+.tab.active{background:var(--sun);border-color:var(--sun);color:#fff;}
+
+.scorebar{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:2px solid var(--border);border-radius:18px;padding:12px 20px;margin-bottom:20px;box-shadow:var(--shadow);}
+.sc-item{text-align:center;}
+.sc-val{font-family:'DM Mono',monospace;font-size:1.5rem;font-weight:500;}
+.sc-lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.sc-val.g{color:var(--green);}.sc-val.r{color:var(--red);}.sc-val.o{color:var(--sun);}.sc-val.b{color:var(--moon);}
+
+.mode-wrap{display:flex;gap:8px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;}
+.mode-btn{padding:7px 16px;border-radius:30px;border:2px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'Baloo 2',cursive;font-size:.82rem;font-weight:700;transition:all .18s;}
+.mode-btn:hover{border-color:var(--dusk);color:var(--dusk);}
+.mode-btn.active{border-color:var(--dusk);color:var(--dusk);background:rgba(123,94,167,.08);}
+
+.prog-wrap{background:#ede9f5;border-radius:99px;height:7px;margin-bottom:20px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--sun),var(--dawn));border-radius:99px;transition:width .4s;}
+
+.q-card{background:var(--card);border:2px solid var(--border);border-radius:24px;padding:28px 24px;text-align:center;margin-bottom:16px;box-shadow:var(--shadow);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.q-badge{display:inline-flex;align-items:center;gap:5px;background:var(--dusk);color:#fff;font-size:.72rem;font-weight:700;padding:3px 12px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:18px;}
+
+.clock-wrap{display:flex;justify-content:center;margin-bottom:14px;}
+
+.digital-time{font-family:'DM Mono',monospace;font-size:3rem;font-weight:500;letter-spacing:2px;color:var(--ink);margin-bottom:6px;}
+.digital-sub{color:var(--muted);font-size:.88rem;}
+
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.opt{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;font-family:'Baloo 2',cursive;font-size:.9rem;font-weight:700;color:var(--ink);line-height:1.35;transition:all .15s;}
+.opt:hover:not(.locked){border-color:var(--dusk);background:rgba(123,94,167,.05);transform:translateY(-1px);}
+.opt.correct{border-color:var(--green);background:rgba(61,186,126,.08);color:var(--green);}
+.opt.wrong{border-color:var(--red);background:rgba(224,90,90,.07);color:var(--red);}
+.opt.locked{cursor:not-allowed;}
+
+.feedback{text-align:center;font-size:1rem;font-weight:700;padding:11px 14px;border-radius:12px;margin-bottom:14px;opacity:0;transition:opacity .2s;}
+.feedback.show{opacity:1;}
+.feedback.ok{background:rgba(61,186,126,.1);color:var(--green);border:1px solid rgba(61,186,126,.3);}
+.feedback.err{background:rgba(224,90,90,.08);color:var(--red);border:1px solid rgba(224,90,90,.25);}
+
+.nav-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.btn{padding:10px 20px;border-radius:12px;border:2px solid var(--border);background:var(--card);color:var(--ink);cursor:pointer;font-family:'Baloo 2',cursive;font-size:.88rem;font-weight:700;transition:all .15s;}
+.btn:hover{border-color:var(--dusk);color:var(--dusk);}
+.btn.primary{background:var(--sun);border-color:var(--sun);color:#fff;}
+.btn.primary:hover{background:#e8952a;}
+
+.results{background:var(--card);border:2px solid var(--border);border-radius:24px;padding:36px 24px;text-align:center;box-shadow:var(--shadow);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);}
+.big-score{font-family:'DM Mono',monospace;font-size:4rem;font-weight:500;color:var(--sun);margin:12px 0;}
+.grade{font-size:1.3rem;font-weight:800;}
+.desc{color:var(--muted);font-size:.9rem;margin:6px 0 22px;}
+.breakdown{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;}
+.bd-item{background:var(--sky);border:2px solid var(--border);border-radius:14px;padding:10px 18px;text-align:center;}
+.bd-val{font-family:'DM Mono',monospace;font-size:1.4rem;}
+
+.theory-card{background:var(--card);border:2px solid var(--border);border-radius:20px;padding:22px 20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.theory-card h3{color:var(--dusk);font-size:1rem;font-weight:800;margin-bottom:12px;}
+.theory-card p{color:var(--muted);font-size:.88rem;line-height:1.75;margin-bottom:8px;}
+.time-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.85rem;}
+.time-table th{background:var(--dusk);color:#fff;padding:7px 10px;text-align:left;}
+.time-table td{padding:7px 10px;border-bottom:1px solid var(--border);}
+.time-table tr:last-child td{border:none;}
+.time-table tr:nth-child(even) td{background:rgba(123,94,167,.04);}
+.tip-box{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.3);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:.85rem;color:var(--ink);line-height:1.65;}
+.tip-box b{color:var(--sun);}
+
+.period-label{display:inline-block;margin-top:8px;padding:3px 14px;border-radius:20px;font-size:.8rem;font-weight:700;}
+.p-tengmalam{background:rgba(45,42,50,.1);color:var(--ink);}
+.p-subuh{background:rgba(74,111,165,.15);color:var(--moon);}
+.p-pagi{background:rgba(245,166,35,.15);color:#c47f0a;}
+.p-siang{background:rgba(224,133,90,.15);color:#b85c2a;}
+.p-sore{background:rgba(123,94,167,.15);color:var(--dusk);}
+.p-malam{background:rgba(74,111,165,.15);color:var(--moon);}
+
+.ch-timer-bar{background:#ede9f5;border-radius:99px;height:10px;margin-bottom:18px;overflow:hidden;}
+.ch-timer-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--sun));border-radius:99px;transition:width .95s linear;}
+
+.toast{position:fixed;top:18px;right:18px;z-index:999;background:var(--sun);color:#fff;font-weight:800;padding:9px 18px;border-radius:12px;font-size:.88rem;opacity:0;pointer-events:none;transition:opacity .25s;font-family:'Baloo 2',cursive;}
+.toast.show{opacity:1;}
+
+@media(max-width:480px){.digital-time{font-size:2.3rem;}.opt{font-size:.82rem;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="wrap">
+  <header>
+    <div class="logo">Baca<span>Jam</span> 🕐</div>
+    <p>Kuis Membaca &amp; Memahami Waktu</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('kuis')">🎯 Kuis</button>
+    <button class="tab" onclick="switchTab('materi')">📖 Materi</button>
+    <button class="tab" onclick="switchTab('tantangan')">⚡ Tantangan</button>
+  </div>
+
+  <div id="tab-kuis">
+    <div class="scorebar">
+      <div class="sc-item"><div class="sc-val g" id="sc-benar">0</div><div class="sc-lbl">Benar</div></div>
+      <div class="sc-item"><div class="sc-val r" id="sc-salah">0</div><div class="sc-lbl">Salah</div></div>
+      <div class="sc-item"><div class="sc-val o" id="sc-streak">0🔥</div><div class="sc-lbl">Streak</div></div>
+      <div class="sc-item"><div class="sc-val b" id="sc-no">1/10</div><div class="sc-lbl">Soal</div></div>
+    </div>
+    <div class="mode-wrap">
+      <button class="mode-btn active" onclick="setMode('digital2verbal',this)">🔢→📢 Digital ke Verbal</button>
+      <button class="mode-btn" onclick="setMode('verbal2digital',this)">📢→🔢 Verbal ke Digital</button>
+      <button class="mode-btn" onclick="setMode('analog',this)">🕐 Baca Jarum Jam</button>
+      <button class="mode-btn" onclick="setMode('mixed',this)">🎲 Campuran</button>
+    </div>
+    <div class="prog-wrap"><div class="prog-fill" id="progBar" style="width:10%"></div></div>
+    <div id="kuis-area"></div>
+  </div>
+
+  <div id="tab-materi" style="display:none">
+    <div class="theory-card">
+      <h3>🌅 Pembagian Waktu Sehari-hari</h3>
+      <table class="time-table">
+        <tr><th>Waktu (24 jam)</th><th>Sebutan</th><th>Contoh</th></tr>
+        <tr><td>00.00 – 02.59</td><td>Tengah Malam</td><td>01.30 = setengah dua tengah malam</td></tr>
+        <tr><td>03.00 – 05.59</td><td>Subuh</td><td>04.15 = pukul empat subuh lewat 15</td></tr>
+        <tr><td>06.00 – 10.59</td><td>Pagi</td><td>07.00 = pukul tujuh pagi tepat</td></tr>
+        <tr><td>11.00 – 14.59</td><td>Siang</td><td>13.30 = setengah dua siang</td></tr>
+        <tr><td>15.00 – 17.59</td><td>Sore</td><td>15.45 = pukul empat sore kurang 15</td></tr>
+        <tr><td>18.00 – 23.59</td><td>Malam</td><td>20.14 = pukul delapan malam lewat 14</td></tr>
+      </table>
+    </div>
+    <div class="theory-card">
+      <h3>🔄 Konversi Format 24 Jam ke 12 Jam</h3>
+      <div class="tip-box">
+        <b>Rumus sederhana:</b><br>
+        • Jam &lt; 12 → tetap, tambah "pagi/subuh"<br>
+        • Jam = 12 → tetap 12, sebut "siang"<br>
+        • Jam &gt; 12 → <b>kurangi 12</b>, tambah "sore/malam"<br>
+        • Jam = 0 → sebut 12 "tengah malam"<br><br>
+        <b>Contoh:</b><br>
+        20.14 → 20−12 = <b>8</b> → pukul 8 malam lewat 14 menit<br>
+        04.30 → tetap 4 → setengah 5 subuh<br>
+        12.00 → tetap 12 → pukul 12 siang tepat<br>
+        00.30 → 12 tengah malam lewat 30 menit
+      </div>
+    </div>
+    <div class="theory-card">
+      <h3>🕐 Membaca Jarum Jam Analog</h3>
+      <div class="tip-box">
+        <b>Jarum pendek = JAM &nbsp;|&nbsp; Jarum panjang = MENIT</b><br><br>
+        • Panjang di angka 12 = menit 00 (tepat)<br>
+        • Panjang di angka 3 = menit 15 (seperempat)<br>
+        • Panjang di angka 6 = menit 30 (setengah)<br>
+        • Panjang di angka 9 = menit 45 (kurang seperempat)<br>
+        • Setiap 1 angka = 5 menit<br><br>
+        Contoh: pendek antara 7–8, panjang di angka 3 → <b>07.15</b>
+      </div>
+    </div>
+    <div class="theory-card">
+      <h3>💬 Cara Menyebut Waktu</h3>
+      <table class="time-table">
+        <tr><th>Menit</th><th>Sebutan</th></tr>
+        <tr><td>00</td><td>tepat / pas</td></tr>
+        <tr><td>15</td><td>lewat 15 menit / seperempat</td></tr>
+        <tr><td>30</td><td>setengah (jam berikutnya!)</td></tr>
+        <tr><td>45</td><td>kurang seperempat (jam berikutnya)</td></tr>
+        <tr><td>Lainnya</td><td>lewat [menit] menit</td></tr>
+      </table>
+      <div class="tip-box">
+        <b>Ingat: "setengah" merujuk jam BERIKUTNYA!</b><br>
+        Setengah 8 = 07.30 (bukan 08.30)<br>
+        Setengah 1 = 00.30 &nbsp;|&nbsp; Setengah 12 = 11.30
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-tantangan" style="display:none">
+    <div id="ch-area"></div>
+  </div>
+</div>
+
+<script>
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function shuffle(a){return a.sort(()=>Math.random()-.5);}
+function pad(n){return String(n).padStart(2,'0');}
+
+function periodOf(h){
+  if(h<=2)  return {label:'Tengah Malam',cls:'p-tengmalam',icon:'🌑'};
+  if(h<=5)  return {label:'Subuh',       cls:'p-subuh',    icon:'🌙'};
+  if(h<=10) return {label:'Pagi',        cls:'p-pagi',     icon:'🌤️'};
+  if(h<=14) return {label:'Siang',       cls:'p-siang',    icon:'☀️'};
+  if(h<=17) return {label:'Sore',        cls:'p-sore',     icon:'🌅'};
+  return           {label:'Malam',       cls:'p-malam',    icon:'🌃'};
+}
+
+function h12(h){return h===0?12:h>12?h-12:h;}
+
+function timeShort(h,m){
+  const p=periodOf(h), h1=h12(h), next=h1===12?1:h1+1;
+  if(m===0)  return 'Pukul '+h1+' '+p.label+' tepat';
+  if(m===15) return 'Pukul '+h1+' '+p.label+' lewat 15';
+  if(m===30) return 'Setengah '+next+' '+p.label;
+  if(m===45) return 'Pukul '+next+' '+p.label+' kurang 15';
+  return 'Pukul '+h1+' '+p.label+' lewat '+m;
+}
+
+function timeVerbal(h,m){
+  const p=periodOf(h), h1=h12(h), next=h1===12?1:h1+1;
+  if(m===0)  return 'Pukul '+h1+' '+p.label+' (tepat)';
+  if(m===15) return 'Pukul '+h1+' '+p.label+' lewat 15 menit';
+  if(m===30) return 'Setengah '+next+' '+p.label;
+  if(m===45) return 'Pukul '+next+' '+p.label+' kurang seperempat';
+  return 'Pukul '+h1+' '+p.label+' lewat '+m+' menit';
+}
+
+/* ─── ANALOG CLOCK ─── */
+function drawClock(hDisp, m){
+  // hDisp = 1-12 (jam tampilan di muka jam)
+  var cx=90, cy=90, r=84;
+  var minAng = (m/60)*360-90;
+  var hrAng  = (hDisp/12)*360+(m/60)*30-90;
+
+  var ticks='';
+  for(var i=0;i<60;i++){
+    var a=i/60*2*Math.PI;
+    var maj=i%5===0;
+    var r1=r-(maj?13:7), r2=r-3;
+    var x1=(cx+r1*Math.cos(a)).toFixed(2), y1=(cy+r1*Math.sin(a)).toFixed(2);
+    var x2=(cx+r2*Math.cos(a)).toFixed(2), y2=(cy+r2*Math.sin(a)).toFixed(2);
+    ticks+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+(maj?'#4a3f6a':'#c0b8d0')+'" stroke-width="'+(maj?2.5:1)+'" stroke-linecap="round"/>';
+  }
+
+  var nums='';
+  for(var n=1;n<=12;n++){
+    var a2=(n/12*2*Math.PI)-(Math.PI/2);
+    var nr=r-23;
+    var nx=(cx+nr*Math.cos(a2)).toFixed(2), ny=(cy+nr*Math.sin(a2)).toFixed(2);
+    nums+='<text x="'+nx+'" y="'+ny+'" text-anchor="middle" dominant-baseline="central" font-family="Baloo 2,cursive" font-size="13" font-weight="700" fill="#4a3f6a">'+n+'</text>';
+  }
+
+  function hand(deg,len,w,col){
+    var a=deg*Math.PI/180;
+    var ex=(cx+len*Math.cos(a)).toFixed(2), ey=(cy+len*Math.sin(a)).toFixed(2);
+    return '<line x1="'+cx+'" y1="'+cy+'" x2="'+ex+'" y2="'+ey+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"/>';
+  }
+
+  return '<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 6px 18px rgba(0,0,0,.13))">'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#fff" stroke="#d0c8e0" stroke-width="3"/>'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+(r-2)+'" fill="none" stroke="#ede8f8" stroke-width="1"/>'
+    +ticks+nums
+    +hand(minAng, r*0.72, 3, '#7b5ea7')
+    +hand(hrAng,  r*0.50, 5, '#2d2a32')
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="#f5a623" stroke="#fff" stroke-width="2"/>'
+    +'</svg>';
+}
+
+/* ─── GENERATORS ─── */
+var MALL=[0,5,10,15,20,25,30,35,40,45,50,55];
+var MEASY=[0,15,30,45];
+
+function genD2V(){
+  var h=rand(0,23), m=MALL[rand(0,MALL.length-1)];
+  var cor=timeShort(h,m);
+  var ws=new Set(); var t=0;
+  while(ws.size<3&&t++<400){var s=timeShort(rand(0,23),MALL[rand(0,MALL.length-1)]);if(s!==cor)ws.add(s);}
+  var p=periodOf(h);
+  return {
+    type:'d2v',
+    svg:null,
+    body:'<div class="digital-time">'+pad(h)+'.'+pad(m)+'</div>'
+        +'<div class="digital-sub">Jam berapa ini dalam bahasa sehari-hari?</div>'
+        +'<span class="period-label '+p.cls+'">'+p.icon+' '+p.label+'</span>',
+    cor:cor, choices:shuffle([cor,...ws]),
+    hint:pad(h)+'.'+pad(m)+' = '+timeVerbal(h,m)
+  };
+}
+
+function genV2D(){
+  var h=rand(0,23), m=MEASY[rand(0,MEASY.length-1)];
+  var verbal=timeShort(h,m);
+  var cor=pad(h)+'.'+pad(m);
+  var ws=new Set(); var t=0;
+  while(ws.size<3&&t++<400){var wh=rand(0,23),wm=MEASY[rand(0,MEASY.length-1)],ws2=pad(wh)+'.'+pad(wm);if(ws2!==cor)ws.add(ws2);}
+  return {
+    type:'v2d',
+    svg:null,
+    body:'<div style="font-size:1.3rem;font-weight:800;color:var(--dusk);margin-bottom:8px">"'+verbal+'"</div>'
+        +'<div class="digital-sub">Pilih format 24 jam yang benar</div>',
+    cor:cor, choices:shuffle([cor,...ws]),
+    hint:'"'+verbal+'" = '+cor
+  };
+}
+
+function genAnalog(){
+  var h12v=rand(1,12), m=MALL[rand(0,MALL.length-1)];
+  var isAM=Math.random()<.5;
+  var h24=isAM?(h12v===12?0:h12v):(h12v===12?12:h12v+12);
+  var cor=pad(h24)+'.'+pad(m);
+  var p=periodOf(h24);
+  var ws=new Set(); var t=0;
+  while(ws.size<3&&t++<400){var wh=rand(0,23),wm=MALL[rand(0,MALL.length-1)],ws2=pad(wh)+'.'+pad(wm);if(ws2!==cor)ws.add(ws2);}
+  return {
+    type:'analog',
+    svg:drawClock(h12v,m),   // ← SVG dibuat di sini, disimpan terpisah
+    body:'<div class="digital-sub" style="margin-top:6px">Jam berapa ini? (Format 24 jam)</div>'
+        +'<span class="period-label '+p.cls+'">'+p.icon+' Petunjuk: waktu '+p.label+'</span>',
+    cor:cor, choices:shuffle([cor,...ws]),
+    hint:'Jarum jam = '+h12v+', menit = '+m+' → '+cor+' ('+p.label+')'
+  };
+}
+
+function genQ(mode){
+  if(mode==='digital2verbal') return genD2V();
+  if(mode==='verbal2digital') return genV2D();
+  if(mode==='analog')         return genAnalog();
+  return [genD2V,genV2D,genAnalog][rand(0,2)]();
+}
+
+/* ─── KUIS ─── */
+var kuisMode='digital2verbal';
+var qs=[], qi=0, benar=0, salah=0, streak=0, answered=false;
+
+function setMode(m,el){
+  kuisMode=m;
+  document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  startKuis();
+}
+
+function startKuis(){
+  qs=[];
+  for(var i=0;i<10;i++) qs.push(genQ(kuisMode));
+  qi=0; benar=0; salah=0; streak=0;
+  updateSc();
+  renderQ();
+}
+
+function renderQ(){
+  var area=document.getElementById('kuis-area');
+  if(qi>=qs.length){renderResults();return;}
+  answered=false;
+  var q=qs[qi];
+  document.getElementById('sc-no').textContent=(qi+1)+'/10';
+  document.getElementById('progBar').style.width=((qi/10)*100+10)+'%';
+
+  var lbl={d2v:'🔢 Digital → Verbal',v2d:'📢 Verbal → Digital',analog:'🕐 Baca Jarum Jam'}[q.type]||'🎲 Campuran';
+
+  // Clock section — only show SVG div when analog
+  var clockHtml = q.svg ? '<div class="clock-wrap">'+q.svg+'</div>' : '';
+
+  var optsHtml='';
+  q.choices.forEach(function(c,i){
+    optsHtml+='<button class="opt" data-val="'+encodeURIComponent(c)+'" data-cor="'+encodeURIComponent(q.cor)+'" onclick="checkOpt(this)">'+c+'</button>';
+  });
+
+  area.innerHTML=
+    '<div class="q-card">'
+      +'<div class="q-badge">'+lbl+'</div>'
+      +clockHtml
+      +q.body
+    +'</div>'
+    +'<div id="fb" class="feedback"></div>'
+    +'<div class="options">'+optsHtml+'</div>'
+    +'<div class="nav-row">'
+      +'<button class="btn" onclick="showHint()">💡 Petunjuk</button>'
+      +'<button class="btn" onclick="startKuis()">🔄 Reset</button>'
+    +'</div>';
+}
+
+function showHint(){
+  var fb=document.getElementById('fb');
+  if(!fb)return;
+  fb.textContent='💡 '+qs[qi].hint;
+  fb.className='feedback show ok';
+}
+
+function checkOpt(el){
+  if(answered)return;
+  answered=true;
+
+  var chosen = decodeURIComponent(el.getAttribute('data-val'));
+  var correct = decodeURIComponent(el.getAttribute('data-cor'));
+  document.querySelectorAll('.opt').forEach(function(o){o.classList.add('locked');});
+  if(chosen===correct){
+    el.classList.add('correct');
+    benar++;streak++;updateSc();
+    showFB('✅ Benar! '+(streak>=3?'🔥 '+streak+' streak!':''),true);
+    if(streak%3===0&&streak>0) showToast('🔥 '+streak+' jawaban benar berturut-turut!');
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.opt').forEach(function(o){if(decodeURIComponent(o.getAttribute('data-val')) === correct)o.classList.add('correct');});
+    salah++;streak=0;updateSc();
+    showFB('❌ Jawaban: '+correct,false);
+  }
+  setTimeout(function(){qi++;renderQ();},1600);
+}
+
+function showFB(msg,ok){
+  var fb=document.getElementById('fb');
+  if(!fb)return;
+  fb.textContent=msg;
+  fb.className='feedback show '+(ok?'ok':'err');
+}
+
+function updateSc(){
+  document.getElementById('sc-benar').textContent=benar;
+  document.getElementById('sc-salah').textContent=salah;
+  document.getElementById('sc-streak').textContent=streak+'🔥';
+}
+
+function renderResults(){
+  var pct=Math.round(benar/10*100);
+  var g,d;
+  if(pct>=90){g='Luar Biasa! 🏆';d='Kamu sudah jago membaca waktu!';}
+  else if(pct>=70){g='Bagus Sekali! 🌟';d='Teruskan, hampir sempurna!';}
+  else if(pct>=50){g='Cukup Baik! 👍';d='Pelajari materi dan coba lagi.';}
+  else{g='Semangat! 💪';d='Baca dulu materinya ya!';}
+  document.getElementById('kuis-area').innerHTML=
+    '<div class="results">'
+    +'<div style="font-size:.9rem;color:var(--muted);font-weight:700;letter-spacing:2px;text-transform:uppercase">Hasil Kuis</div>'
+    +'<div class="big-score">'+pct+'%</div>'
+    +'<div class="grade">'+g+'</div>'
+    +'<div class="desc">'+d+'</div>'
+    +'<div class="breakdown">'
+      +'<div class="bd-item"><div class="bd-val" style="color:var(--green)">'+benar+'</div><div style="font-size:.7rem;color:var(--muted)">Benar</div></div>'
+      +'<div class="bd-item"><div class="bd-val" style="color:var(--red)">'+salah+'</div><div style="font-size:.7rem;color:var(--muted)">Salah</div></div>'
+      +'<div class="bd-item"><div class="bd-val" style="color:var(--sun)">10</div><div style="font-size:.7rem;color:var(--muted)">Total</div></div>'
+    +'</div>'
+    +'<div class="nav-row" style="justify-content:center">'
+      +'<button class="btn primary" onclick="startKuis()">🔄 Main Lagi</button>'
+      +'<button class="btn" onclick="switchTab(\'materi\')">📖 Baca Materi</button>'
+    +'</div></div>';
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2200);
+}
+
+/* ─── TANTANGAN ─── */
+var chActive=false, chTimer=null, chTime=30, chScore=0;
+
+function startChallenge(){
+  chActive=true;chScore=0;chTime=30;
+  renderCh();
+  chTimer=setInterval(function(){
+    chTime--;
+    var fill=document.getElementById('ch-fill');
+    if(fill)fill.style.width=(chTime/30*100)+'%';
+    var tel=document.getElementById('ch-time');
+    if(tel)tel.textContent=chTime;
+    if(chTime<=0){clearInterval(chTimer);endChallenge();}
+  },1000);
+}
+
+function renderCh(){
+  var area=document.getElementById('ch-area');
+  if(!chActive){
+    area.innerHTML='<div class="results">'
+      +'<div style="font-size:1rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:2px">Tantangan Cepat</div>'
+      +'<p style="color:var(--muted);margin:12px 0 22px;font-size:.9rem">Jawab sebanyak mungkin dalam <b style="color:var(--sun)">30 detik</b>!</p>'
+      +'<button class="btn primary" onclick="startChallenge()">▶ Mulai!</button></div>';
+    return;
+  }
+  var q=genQ('mixed');
+  var clockHtml=q.svg?'<div class="clock-wrap">'+q.svg+'</div>':'';
+  var optsHtml='';
+  q.choices.forEach(function(c){
+    optsHtml+='<button class="opt" onclick="chAns(this,'+JSON.stringify(c)+','+JSON.stringify(q.cor)+')">'+c+'</button>';
+  });
+  area.innerHTML=
+    '<div class="scorebar">'
+      +'<div class="sc-item"><div class="sc-val o" id="ch-time">'+chTime+'</div><div class="sc-lbl">Detik</div></div>'
+      +'<div class="sc-item"><div class="sc-val g">'+chScore+'</div><div class="sc-lbl">Skor</div></div>'
+    +'</div>'
+    +'<div class="ch-timer-bar"><div class="ch-timer-fill" id="ch-fill" style="width:'+(chTime/30*100)+'%"></div></div>'
+    +'<div class="q-card" style="margin-bottom:12px">'
+      +'<div class="q-badge">⚡ CEPAT!</div>'
+      +clockHtml+q.body
+    +'</div>'
+    +'<div class="options">'+optsHtml+'</div>';
+}
+
+function chAns(el,chosen,correct){
+  if(!chActive)return;
+  if(chosen===correct)chScore++;
+  renderCh();
+}
+
+function endChallenge(){
+  chActive=false;
+  var area=document.getElementById('ch-area');
+  var emoji=chScore>=15?'🏆':chScore>=10?'🌟':chScore>=6?'👍':'📚';
+  var gr=chScore>=15?'Jago Banget!':chScore>=10?'Keren!':chScore>=6?'Lumayan!':'Terus Latihan!';
+  area.innerHTML='<div class="results">'
+    +'<div style="font-size:3rem">'+emoji+'</div>'
+    +'<div class="big-score">'+chScore+'</div>'
+    +'<div class="grade">'+gr+'</div>'
+    +'<div class="desc">'+chScore+' soal benar dalam 30 detik</div>'
+    +'<div class="nav-row" style="justify-content:center;margin-top:8px">'
+      +'<button class="btn primary" onclick="startChallenge()">🔄 Coba Lagi</button>'
+    +'</div></div>';
+}
+
+/* ─── TABS ─── */
+function switchTab(t){
+  ['kuis','materi','tantangan'].forEach(function(id){
+    document.getElementById('tab-'+id).style.display=id===t?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach(function(el,i){
+    el.classList.toggle('active',['kuis','materi','tantangan'][i]===t);
+  });
+  if(t==='tantangan'&&!chActive)renderCh();
+}
+
+startKuis();
+renderCh();
+</script>
+</body>
+</html>
