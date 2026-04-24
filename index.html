@@ -142,7 +142,7 @@ header p{color:var(--muted);font-size:.95rem;margin-top:2px;}
       <table class="time-table">
         <tr><th>Waktu (24 jam)</th><th>Sebutan</th><th>Contoh</th></tr>
         <tr><td>00.00 – 02.59</td><td>Tengah Malam</td><td>01.30 = setengah dua tengah malam</td></tr>
-        <tr><td>03.00 – 05.59</td><td>Subuh</td><td>04.15 = pukul empat subuh lewat 15</td></tr>
+        <tr><td>03.00 – 04.59</td><td>Subuh</td><td>04.15 = pukul empat subuh lewat 15</td></tr>
         <tr><td>06.00 – 10.59</td><td>Pagi</td><td>07.00 = pukul tujuh pagi tepat</td></tr>
         <tr><td>11.00 – 14.59</td><td>Siang</td><td>13.30 = setengah dua siang</td></tr>
         <tr><td>15.00 – 17.59</td><td>Sore</td><td>15.45 = pukul empat sore kurang 15</td></tr>
@@ -206,7 +206,7 @@ function pad(n){return String(n).padStart(2,'0');}
 
 function periodOf(h){
   if(h<=2)  return {label:'Tengah Malam',cls:'p-tengmalam',icon:'🌑'};
-  if(h<=5)  return {label:'Subuh',       cls:'p-subuh',    icon:'🌙'};
+  if(h<=4)  return {label:'Subuh',       cls:'p-subuh',    icon:'🌙'};
   if(h<=10) return {label:'Pagi',        cls:'p-pagi',     icon:'🌤️'};
   if(h<=14) return {label:'Siang',       cls:'p-siang',    icon:'☀️'};
   if(h<=17) return {label:'Sore',        cls:'p-sore',     icon:'🌅'};
