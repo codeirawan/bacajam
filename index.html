@@ -16,7 +16,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--sky);color:var(--ink);font-family:'Baloo 2',cursive;min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(124,84,168,.08) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0;}
-.wrap{max-width:680px;margin:0 auto;padding:28px 16px;position:relative;z-index:1;}
+.wrap{max-width:680px;margin:0 auto;padding:28px 16px 80px;position:relative;z-index:1;}
 
 header{text-align:center;margin-bottom:28px;}
 header .logo{font-size:2.2rem;font-weight:800;color:var(--ink);letter-spacing:-1px;}
@@ -102,11 +102,97 @@ header p{color:var(--muted);font-size:.95rem;margin-top:2px;}
 .toast{position:fixed;top:18px;right:18px;z-index:999;background:var(--sun);color:#fff;font-weight:800;padding:9px 18px;border-radius:12px;font-size:.88rem;opacity:0;pointer-events:none;transition:opacity .25s;font-family:'Baloo 2',cursive;}
 .toast.show{opacity:1;}
 
-@media(max-width:480px){.digital-time{font-size:2.3rem;}.opt{font-size:.82rem;}}
+/* ── QRIS FLOATING BUTTON — style kuis-ceria ── */
+.qris-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 900;
+}
+.qris-btn {
+  background: linear-gradient(135deg, #FF6B6B, #FF8C42);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 6px 20px rgba(255,107,107,.5), 0 3px 0 rgba(0,0,0,.1);
+  transition: transform .2s, box-shadow .2s;
+  animation: fabPulse 2.5s ease-in-out infinite;
+  letter-spacing: .3px;
+}
+.qris-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 28px rgba(255,107,107,.55), 0 3px 0 rgba(0,0,0,.1);
+}
+.qris-btn:active { transform: scale(.97); }
+@keyframes fabPulse {
+  0%,100% { box-shadow: 0 6px 20px rgba(255,107,107,.5), 0 3px 0 rgba(0,0,0,.1); }
+  50%      { box-shadow: 0 6px 28px rgba(255,107,107,.8), 0 3px 0 rgba(0,0,0,.1); }
+}
+
+/* ── QRIS MODAL ── */
+.qris-overlay{display:none;position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
+.qris-overlay.open{display:flex;}
+
+.qris-modal{
+  background:#fff;border-radius:28px;padding:28px 24px 22px;
+  max-width:360px;width:100%;text-align:center;position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  transform:scale(0);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.qris-overlay.open .qris-modal{transform:scale(1);}
+
+.qris-close{position:absolute;top:14px;right:16px;background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;font-size:14px;font-weight:800;cursor:pointer;color:#555;transition:background .15s;}
+.qris-close:hover{background:#e0e0e0;}
+
+.qris-heart{font-size:38px;display:block;margin-bottom:6px;animation:iconBounce 1.5s ease-in-out infinite;}
+@keyframes iconBounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+.qris-title{font-family:'Baloo 2',cursive;font-size:20px;font-weight:800;color:#2C3E50;}
+.qris-sub{font-size:13px;color:#888;font-weight:700;margin-bottom:14px;}
+
+.qris-img-wrap{margin:0 auto;}
+.qris-img-wrap img{width:100%;max-width:280px;display:block;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);margin:0 auto 12px;}
+
+.qris-name{font-size:12px;font-weight:800;color:#555;margin-bottom:6px;letter-spacing:.3px;}
+.qris-thanks{font-family:'Baloo 2',cursive;font-size:16px;font-weight:800;color:#FF6B6B;}
+
+@media(max-width:480px){.digital-time{font-size:2.3rem;}.opt{font-size:.82rem;}.qris-fab{bottom:16px;right:14px;}}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
+
+<!-- FLOATING QRIS BUTTON — style kuis-ceria -->
+<div class="qris-fab">
+  <button class="qris-btn" onclick="openQris()">
+    ☕ <span>Support</span>
+  </button>
+</div>
+
+<!-- QRIS MODAL OVERLAY -->
+<div class="qris-overlay" id="qrisOverlay" onclick="closeQrisOutside(event)">
+  <div class="qris-modal" id="qrisModal">
+    <button class="qris-close" onclick="closeQris()" aria-label="Tutup">✕</button>
+    <div class="qris-header">
+      <span class="qris-heart">☕</span>
+      <div class="qris-title">Dukung Developer</div>
+      <div class="qris-sub">Scan QRIS untuk support ya! 🙏</div>
+    </div>
+    <div class="qris-img-wrap">
+      <img src="qris.jpeg" alt="QRIS @codeirawan" />
+    </div>
+    <div class="qris-name">@CODEIRAWAN, KOMPUTER &amp; SOFTWARE</div>
+    <div class="qris-thanks">Terima kasih banyak! ❤️</div>
+  </div>
+</div>
+
 <div class="wrap">
   <header>
     <div class="logo">Baca<span>Jam</span> 🕐</div>
@@ -212,20 +298,17 @@ function periodOf(h){
   if(h<=17) return {label:'Sore',        cls:'p-sore',     icon:'🌅'};
   return           {label:'Malam',       cls:'p-malam',    icon:'🌃'};
 }
-
 function h12(h){return h===0?12:h>12?h-12:h;}
-
 function timeShort(h,m){
-  const p=periodOf(h), h1=h12(h), next=h1===12?1:h1+1;
+  var p=periodOf(h),h1=h12(h),next=h1===12?1:h1+1;
   if(m===0)  return 'Pukul '+h1+' '+p.label+' tepat';
   if(m===15) return 'Pukul '+h1+' '+p.label+' lewat 15';
   if(m===30) return 'Setengah '+next+' '+p.label;
   if(m===45) return 'Pukul '+next+' '+p.label+' kurang 15';
   return 'Pukul '+h1+' '+p.label+' lewat '+m;
 }
-
 function timeVerbal(h,m){
-  const p=periodOf(h), h1=h12(h), next=h1===12?1:h1+1;
+  var p=periodOf(h),h1=h12(h),next=h1===12?1:h1+1;
   if(m===0)  return 'Pukul '+h1+' '+p.label+' (tepat)';
   if(m===15) return 'Pukul '+h1+' '+p.label+' lewat 15 menit';
   if(m===30) return 'Setengah '+next+' '+p.label;
@@ -233,102 +316,72 @@ function timeVerbal(h,m){
   return 'Pukul '+h1+' '+p.label+' lewat '+m+' menit';
 }
 
-/* ─── ANALOG CLOCK ─── */
-function drawClock(hDisp, m){
-  // hDisp = 1-12 (jam tampilan di muka jam)
-  var cx=90, cy=90, r=84;
-  var minAng = (m/60)*360-90;
-  var hrAng  = (hDisp/12)*360+(m/60)*30-90;
-
+function drawClock(hDisp,m){
+  var cx=90,cy=90,r=84;
+  var minAng=(m/60)*360-90;
+  var hrAng=(hDisp/12)*360+(m/60)*30-90;
   var ticks='';
   for(var i=0;i<60;i++){
-    var a=i/60*2*Math.PI;
-    var maj=i%5===0;
-    var r1=r-(maj?13:7), r2=r-3;
-    var x1=(cx+r1*Math.cos(a)).toFixed(2), y1=(cy+r1*Math.sin(a)).toFixed(2);
-    var x2=(cx+r2*Math.cos(a)).toFixed(2), y2=(cy+r2*Math.sin(a)).toFixed(2);
+    var a=i/60*2*Math.PI,maj=i%5===0;
+    var r1=r-(maj?13:7),r2=r-3;
+    var x1=(cx+r1*Math.cos(a)).toFixed(2),y1=(cy+r1*Math.sin(a)).toFixed(2);
+    var x2=(cx+r2*Math.cos(a)).toFixed(2),y2=(cy+r2*Math.sin(a)).toFixed(2);
     ticks+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+(maj?'#4a3f6a':'#c0b8d0')+'" stroke-width="'+(maj?2.5:1)+'" stroke-linecap="round"/>';
   }
-
   var nums='';
   for(var n=1;n<=12;n++){
-    var a2=(n/12*2*Math.PI)-(Math.PI/2);
-    var nr=r-23;
-    var nx=(cx+nr*Math.cos(a2)).toFixed(2), ny=(cy+nr*Math.sin(a2)).toFixed(2);
+    var a2=(n/12*2*Math.PI)-(Math.PI/2),nr=r-23;
+    var nx=(cx+nr*Math.cos(a2)).toFixed(2),ny=(cy+nr*Math.sin(a2)).toFixed(2);
     nums+='<text x="'+nx+'" y="'+ny+'" text-anchor="middle" dominant-baseline="central" font-family="Baloo 2,cursive" font-size="13" font-weight="700" fill="#4a3f6a">'+n+'</text>';
   }
-
   function hand(deg,len,w,col){
     var a=deg*Math.PI/180;
-    var ex=(cx+len*Math.cos(a)).toFixed(2), ey=(cy+len*Math.sin(a)).toFixed(2);
+    var ex=(cx+len*Math.cos(a)).toFixed(2),ey=(cy+len*Math.sin(a)).toFixed(2);
     return '<line x1="'+cx+'" y1="'+cy+'" x2="'+ex+'" y2="'+ey+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"/>';
   }
-
   return '<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 6px 18px rgba(0,0,0,.13))">'
     +'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#fff" stroke="#d0c8e0" stroke-width="3"/>'
     +'<circle cx="'+cx+'" cy="'+cy+'" r="'+(r-2)+'" fill="none" stroke="#ede8f8" stroke-width="1"/>'
     +ticks+nums
-    +hand(minAng, r*0.72, 3, '#7b5ea7')
-    +hand(hrAng,  r*0.50, 5, '#2d2a32')
+    +hand(minAng,r*0.72,3,'#7b5ea7')
+    +hand(hrAng,r*0.50,5,'#2d2a32')
     +'<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="#f5a623" stroke="#fff" stroke-width="2"/>'
     +'</svg>';
 }
 
-/* ─── GENERATORS ─── */
 var MALL=[0,5,10,15,20,25,30,35,40,45,50,55];
 var MEASY=[0,15,30,45];
 
 function genD2V(){
-  var h=rand(0,23), m=MALL[rand(0,MALL.length-1)];
+  var h=rand(0,23),m=MALL[rand(0,MALL.length-1)];
   var cor=timeShort(h,m);
-  var ws=new Set(); var t=0;
+  var ws=new Set(),t=0;
   while(ws.size<3&&t++<400){var s=timeShort(rand(0,23),MALL[rand(0,MALL.length-1)]);if(s!==cor)ws.add(s);}
   var p=periodOf(h);
-  return {
-    type:'d2v',
-    svg:null,
-    body:'<div class="digital-time">'+pad(h)+'.'+pad(m)+'</div>'
-        +'<div class="digital-sub">Jam berapa ini dalam bahasa sehari-hari?</div>'
-        +'<span class="period-label '+p.cls+'">'+p.icon+' '+p.label+'</span>',
-    cor:cor, choices:shuffle([cor,...ws]),
-    hint:pad(h)+'.'+pad(m)+' = '+timeVerbal(h,m)
-  };
+  return {type:'d2v',svg:null,
+    body:'<div class="digital-time">'+pad(h)+'.'+pad(m)+'</div><div class="digital-sub">Jam berapa ini dalam bahasa sehari-hari?</div><span class="period-label '+p.cls+'">'+p.icon+' '+p.label+'</span>',
+    cor:cor,choices:shuffle([cor,...ws]),hint:pad(h)+'.'+pad(m)+' = '+timeVerbal(h,m)};
 }
-
 function genV2D(){
-  var h=rand(0,23), m=MEASY[rand(0,MEASY.length-1)];
-  var verbal=timeShort(h,m);
-  var cor=pad(h)+'.'+pad(m);
-  var ws=new Set(); var t=0;
+  var h=rand(0,23),m=MEASY[rand(0,MEASY.length-1)];
+  var verbal=timeShort(h,m),cor=pad(h)+'.'+pad(m);
+  var ws=new Set(),t=0;
   while(ws.size<3&&t++<400){var wh=rand(0,23),wm=MEASY[rand(0,MEASY.length-1)],ws2=pad(wh)+'.'+pad(wm);if(ws2!==cor)ws.add(ws2);}
-  return {
-    type:'v2d',
-    svg:null,
-    body:'<div style="font-size:1.3rem;font-weight:800;color:var(--dusk);margin-bottom:8px">"'+verbal+'"</div>'
-        +'<div class="digital-sub">Pilih format 24 jam yang benar</div>',
-    cor:cor, choices:shuffle([cor,...ws]),
-    hint:'"'+verbal+'" = '+cor
-  };
+  return {type:'v2d',svg:null,
+    body:'<div style="font-size:1.3rem;font-weight:800;color:var(--dusk);margin-bottom:8px">"'+verbal+'"</div><div class="digital-sub">Pilih format 24 jam yang benar</div>',
+    cor:cor,choices:shuffle([cor,...ws]),hint:'"'+verbal+'" = '+cor};
 }
-
 function genAnalog(){
-  var h12v=rand(1,12), m=MALL[rand(0,MALL.length-1)];
+  var h12v=rand(1,12),m=MALL[rand(0,MALL.length-1)];
   var isAM=Math.random()<.5;
   var h24=isAM?(h12v===12?0:h12v):(h12v===12?12:h12v+12);
-  var cor=pad(h24)+'.'+pad(m);
-  var p=periodOf(h24);
-  var ws=new Set(); var t=0;
+  var cor=pad(h24)+'.'+pad(m),p=periodOf(h24);
+  var ws=new Set(),t=0;
   while(ws.size<3&&t++<400){var wh=rand(0,23),wm=MALL[rand(0,MALL.length-1)],ws2=pad(wh)+'.'+pad(wm);if(ws2!==cor)ws.add(ws2);}
-  return {
-    type:'analog',
-    svg:drawClock(h12v,m),   // ← SVG dibuat di sini, disimpan terpisah
-    body:'<div class="digital-sub" style="margin-top:6px">Jam berapa ini? (Format 24 jam)</div>'
-        +'<span class="period-label '+p.cls+'">'+p.icon+' Petunjuk: waktu '+p.label+'</span>',
-    cor:cor, choices:shuffle([cor,...ws]),
-    hint:'Jarum jam = '+h12v+', menit = '+m+' → '+cor+' ('+p.label+')'
-  };
+  return {type:'analog',svg:drawClock(h12v,m),
+    body:'<div class="digital-sub" style="margin-top:6px">Jam berapa ini? (Format 24 jam)</div><span class="period-label '+p.cls+'">'+p.icon+' Petunjuk: waktu '+p.label+'</span>',
+    cor:cor,choices:shuffle([cor,...ws]),hint:'Jarum jam = '+h12v+', menit = '+m+' → '+cor+' ('+p.label+')'};
 }
-
 function genQ(mode){
   if(mode==='digital2verbal') return genD2V();
   if(mode==='verbal2digital') return genV2D();
@@ -336,9 +389,8 @@ function genQ(mode){
   return [genD2V,genV2D,genAnalog][rand(0,2)]();
 }
 
-/* ─── KUIS ─── */
 var kuisMode='digital2verbal';
-var qs=[], qi=0, benar=0, salah=0, streak=0, answered=false;
+var qs=[],qi=0,benar=0,salah=0,streak=0,answered=false;
 
 function setMode(m,el){
   kuisMode=m;
@@ -346,15 +398,12 @@ function setMode(m,el){
   el.classList.add('active');
   startKuis();
 }
-
 function startKuis(){
   qs=[];
   for(var i=0;i<10;i++) qs.push(genQ(kuisMode));
-  qi=0; benar=0; salah=0; streak=0;
-  updateSc();
-  renderQ();
+  qi=0;benar=0;salah=0;streak=0;
+  updateSc();renderQ();
 }
-
 function renderQ(){
   var area=document.getElementById('kuis-area');
   if(qi>=qs.length){renderResults();return;}
@@ -362,72 +411,46 @@ function renderQ(){
   var q=qs[qi];
   document.getElementById('sc-no').textContent=(qi+1)+'/10';
   document.getElementById('progBar').style.width=((qi/10)*100+10)+'%';
-
   var lbl={d2v:'🔢 Digital → Verbal',v2d:'📢 Verbal → Digital',analog:'🕐 Baca Jarum Jam'}[q.type]||'🎲 Campuran';
-
-  // Clock section — only show SVG div when analog
-  var clockHtml = q.svg ? '<div class="clock-wrap">'+q.svg+'</div>' : '';
-
+  var clockHtml=q.svg?'<div class="clock-wrap">'+q.svg+'</div>':'';
   var optsHtml='';
-  q.choices.forEach(function(c,i){
+  q.choices.forEach(function(c){
     optsHtml+='<button class="opt" data-val="'+encodeURIComponent(c)+'" data-cor="'+encodeURIComponent(q.cor)+'" onclick="checkOpt(this)">'+c+'</button>';
   });
-
-  area.innerHTML=
-    '<div class="q-card">'
-      +'<div class="q-badge">'+lbl+'</div>'
-      +clockHtml
-      +q.body
-    +'</div>'
+  area.innerHTML='<div class="q-card"><div class="q-badge">'+lbl+'</div>'+clockHtml+q.body+'</div>'
     +'<div id="fb" class="feedback"></div>'
     +'<div class="options">'+optsHtml+'</div>'
-    +'<div class="nav-row">'
-      +'<button class="btn" onclick="showHint()">💡 Petunjuk</button>'
-      +'<button class="btn" onclick="startKuis()">🔄 Reset</button>'
-    +'</div>';
+    +'<div class="nav-row"><button class="btn" onclick="showHint()">💡 Petunjuk</button><button class="btn" onclick="startKuis()">🔄 Reset</button></div>';
 }
-
 function showHint(){
-  var fb=document.getElementById('fb');
-  if(!fb)return;
-  fb.textContent='💡 '+qs[qi].hint;
-  fb.className='feedback show ok';
+  var fb=document.getElementById('fb');if(!fb)return;
+  fb.textContent='💡 '+qs[qi].hint;fb.className='feedback show ok';
 }
-
 function checkOpt(el){
-  if(answered)return;
-  answered=true;
-
-  var chosen = decodeURIComponent(el.getAttribute('data-val'));
-  var correct = decodeURIComponent(el.getAttribute('data-cor'));
+  if(answered)return;answered=true;
+  var chosen=decodeURIComponent(el.getAttribute('data-val'));
+  var correct=decodeURIComponent(el.getAttribute('data-cor'));
   document.querySelectorAll('.opt').forEach(function(o){o.classList.add('locked');});
   if(chosen===correct){
-    el.classList.add('correct');
-    benar++;streak++;updateSc();
+    el.classList.add('correct');benar++;streak++;updateSc();
     showFB('✅ Benar! '+(streak>=3?'🔥 '+streak+' streak!':''),true);
     if(streak%3===0&&streak>0) showToast('🔥 '+streak+' jawaban benar berturut-turut!');
   } else {
     el.classList.add('wrong');
-    document.querySelectorAll('.opt').forEach(function(o){if(decodeURIComponent(o.getAttribute('data-val')) === correct)o.classList.add('correct');});
-    salah++;streak=0;updateSc();
-    showFB('❌ Jawaban: '+correct,false);
+    document.querySelectorAll('.opt').forEach(function(o){if(decodeURIComponent(o.getAttribute('data-val'))===correct)o.classList.add('correct');});
+    salah++;streak=0;updateSc();showFB('❌ Jawaban: '+correct,false);
   }
   setTimeout(function(){qi++;renderQ();},1600);
 }
-
 function showFB(msg,ok){
-  var fb=document.getElementById('fb');
-  if(!fb)return;
-  fb.textContent=msg;
-  fb.className='feedback show '+(ok?'ok':'err');
+  var fb=document.getElementById('fb');if(!fb)return;
+  fb.textContent=msg;fb.className='feedback show '+(ok?'ok':'err');
 }
-
 function updateSc(){
   document.getElementById('sc-benar').textContent=benar;
   document.getElementById('sc-salah').textContent=salah;
   document.getElementById('sc-streak').textContent=streak+'🔥';
 }
-
 function renderResults(){
   var pct=Math.round(benar/10*100);
   var g,d;
@@ -435,12 +458,9 @@ function renderResults(){
   else if(pct>=70){g='Bagus Sekali! 🌟';d='Teruskan, hampir sempurna!';}
   else if(pct>=50){g='Cukup Baik! 👍';d='Pelajari materi dan coba lagi.';}
   else{g='Semangat! 💪';d='Baca dulu materinya ya!';}
-  document.getElementById('kuis-area').innerHTML=
-    '<div class="results">'
+  document.getElementById('kuis-area').innerHTML='<div class="results">'
     +'<div style="font-size:.9rem;color:var(--muted);font-weight:700;letter-spacing:2px;text-transform:uppercase">Hasil Kuis</div>'
-    +'<div class="big-score">'+pct+'%</div>'
-    +'<div class="grade">'+g+'</div>'
-    +'<div class="desc">'+d+'</div>'
+    +'<div class="big-score">'+pct+'%</div><div class="grade">'+g+'</div><div class="desc">'+d+'</div>'
     +'<div class="breakdown">'
       +'<div class="bd-item"><div class="bd-val" style="color:var(--green)">'+benar+'</div><div style="font-size:.7rem;color:var(--muted)">Benar</div></div>'
       +'<div class="bd-item"><div class="bd-val" style="color:var(--red)">'+salah+'</div><div style="font-size:.7rem;color:var(--muted)">Salah</div></div>'
@@ -449,6 +469,7 @@ function renderResults(){
     +'<div class="nav-row" style="justify-content:center">'
       +'<button class="btn primary" onclick="startKuis()">🔄 Main Lagi</button>'
       +'<button class="btn" onclick="switchTab(\'materi\')">📖 Baca Materi</button>'
+      +'<button class="btn" style="border-color:#e00000;color:#e00000" onclick="openQris()">❤️ Support QRIS</button>'
     +'</div></div>';
 }
 
@@ -458,12 +479,10 @@ function showToast(msg){
   setTimeout(function(){t.classList.remove('show');},2200);
 }
 
-/* ─── TANTANGAN ─── */
-var chActive=false, chTimer=null, chTime=30, chScore=0;
-
+/* ── TANTANGAN ── */
+var chActive=false,chTimer=null,chTime=30,chScore=0;
 function startChallenge(){
-  chActive=true;chScore=0;chTime=30;
-  renderCh();
+  chActive=true;chScore=0;chTime=30;renderCh();
   chTimer=setInterval(function(){
     chTime--;
     var fill=document.getElementById('ch-fill');
@@ -473,12 +492,10 @@ function startChallenge(){
     if(chTime<=0){clearInterval(chTimer);endChallenge();}
   },1000);
 }
-
 function renderCh(){
   var area=document.getElementById('ch-area');
   if(!chActive){
-    area.innerHTML='<div class="results">'
-      +'<div style="font-size:1rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:2px">Tantangan Cepat</div>'
+    area.innerHTML='<div class="results"><div style="font-size:1rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:2px">Tantangan Cepat</div>'
       +'<p style="color:var(--muted);margin:12px 0 22px;font-size:.9rem">Jawab sebanyak mungkin dalam <b style="color:var(--sun)">30 detik</b>!</p>'
       +'<button class="btn primary" onclick="startChallenge()">▶ Mulai!</button></div>';
     return;
@@ -487,43 +504,36 @@ function renderCh(){
   var clockHtml=q.svg?'<div class="clock-wrap">'+q.svg+'</div>':'';
   var optsHtml='';
   q.choices.forEach(function(c){
-    optsHtml+='<button class="opt" onclick="chAns(this,'+JSON.stringify(c)+','+JSON.stringify(q.cor)+')">'+c+'</button>';
+    optsHtml+='<button class="opt" data-val="'+encodeURIComponent(c)+'" data-cor="'+encodeURIComponent(q.cor)+'" onclick="chAns(this)">'+c+'</button>';
   });
-  area.innerHTML=
-    '<div class="scorebar">'
-      +'<div class="sc-item"><div class="sc-val o" id="ch-time">'+chTime+'</div><div class="sc-lbl">Detik</div></div>'
-      +'<div class="sc-item"><div class="sc-val g">'+chScore+'</div><div class="sc-lbl">Skor</div></div>'
-    +'</div>'
+  area.innerHTML='<div class="scorebar"><div class="sc-item"><div class="sc-val o" id="ch-time">'+chTime+'</div><div class="sc-lbl">Detik</div></div>'
+    +'<div class="sc-item"><div class="sc-val g">'+chScore+'</div><div class="sc-lbl">Skor</div></div></div>'
     +'<div class="ch-timer-bar"><div class="ch-timer-fill" id="ch-fill" style="width:'+(chTime/30*100)+'%"></div></div>'
-    +'<div class="q-card" style="margin-bottom:12px">'
-      +'<div class="q-badge">⚡ CEPAT!</div>'
-      +clockHtml+q.body
-    +'</div>'
+    +'<div class="q-card" style="margin-bottom:12px"><div class="q-badge">⚡ CEPAT!</div>'+clockHtml+q.body+'</div>'
     +'<div class="options">'+optsHtml+'</div>';
 }
-
-function chAns(el,chosen,correct){
+function chAns(el){
   if(!chActive)return;
+  var chosen=decodeURIComponent(el.getAttribute('data-val'));
+  var correct=decodeURIComponent(el.getAttribute('data-cor'));
   if(chosen===correct)chScore++;
   renderCh();
 }
-
 function endChallenge(){
   chActive=false;
   var area=document.getElementById('ch-area');
   var emoji=chScore>=15?'🏆':chScore>=10?'🌟':chScore>=6?'👍':'📚';
   var gr=chScore>=15?'Jago Banget!':chScore>=10?'Keren!':chScore>=6?'Lumayan!':'Terus Latihan!';
-  area.innerHTML='<div class="results">'
-    +'<div style="font-size:3rem">'+emoji+'</div>'
-    +'<div class="big-score">'+chScore+'</div>'
-    +'<div class="grade">'+gr+'</div>'
+  area.innerHTML='<div class="results"><div style="font-size:3rem">'+emoji+'</div>'
+    +'<div class="big-score">'+chScore+'</div><div class="grade">'+gr+'</div>'
     +'<div class="desc">'+chScore+' soal benar dalam 30 detik</div>'
     +'<div class="nav-row" style="justify-content:center;margin-top:8px">'
       +'<button class="btn primary" onclick="startChallenge()">🔄 Coba Lagi</button>'
+      +'<button class="btn" style="border-color:#e00000;color:#e00000" onclick="openQris()">❤️ Support QRIS</button>'
     +'</div></div>';
 }
 
-/* ─── TABS ─── */
+/* ── TABS ── */
 function switchTab(t){
   ['kuis','materi','tantangan'].forEach(function(id){
     document.getElementById('tab-'+id).style.display=id===t?'block':'none';
@@ -532,6 +542,19 @@ function switchTab(t){
     el.classList.toggle('active',['kuis','materi','tantangan'][i]===t);
   });
   if(t==='tantangan'&&!chActive)renderCh();
+}
+
+/* ── QRIS MODAL ── */
+function openQris(){
+  document.getElementById('qrisOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeQris(){
+  document.getElementById('qrisOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeQrisOutside(e){
+  if(e.target===document.getElementById('qrisOverlay'))closeQris();
 }
 
 startKuis();
